@@ -2,13 +2,15 @@ import User from "./User";
 import { normalize } from "path";
 import { readFile, writeFile } from "fs/promises";
 import * as fs from "fs";
+import crypto from "crypto";
+
 type Users_ = {
   Users: User[];
   Users_loc: User_Stats[];
 };
 
 type Pre_User_Stats = {
-  Username: String;
+  Username: string;
   email: string;
   password: string;
 };
@@ -57,7 +59,7 @@ export default class Users {
       Path = normalize(Path + "/Users");
       this.Path = normalize(Path);
     }
-    this.import(Path);
+    this.import(this.Path);
     this.setup();
   }
 
@@ -95,6 +97,8 @@ export default class Users {
     return this.Users_ref[ref];
   }
 
+
+
   async save(): Promise<boolean> {
     try {
       await writeFile(
@@ -116,24 +120,93 @@ export default class Users {
   /** ------------------------ */
 
   async signUp(Data: Pre_User_Stats): Promise<Status> {
-    let data: Status = {
-      return: 1,
-      args: [],
-      comments: "",
-    };
+  const data: Status = {
+    return: 1,
+    args: [],
+    comments: "",
+  };
 
+  //duplicate account check 
+  if (this.Users_email[Data.email] || this.Users_username[Data.Username]) {
+    data.comments = "There is already a user with that info.";
     return data;
   }
+
+  //salt and hash the password
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hashed = crypto
+    .pbkdf2Sync(Data.password, salt, 1000, 64, "sha512")
+    .toString("hex");
+  const id = crypto.randomUUID();
+  const ref = crypto.randomBytes(8).toString("hex");
+
+  //create the User_Stats object
+  const userStats: User_Stats = {
+    Username: Data.Username,
+    email: Data.email,
+    hashed,
+    salt,
+    id,
+    ref,
+  };
+
+  //create new user instance and store User_Stats that was populated
+  const user = new User(this.Path, userStats);
+  this.Users_system.push(userStats);
+  this.Users_data.push(user);
+  this.Users_username[Data.Username] = user;
+  this.Users_email[Data.email] = user;
+  this.Users_id[id] = user;
+  this.Users_ref[ref] = user;
+
+  //save 
+  await this.save();
+
+  data.return = 0;
+  data.args = [userStats];
+  data.comments = "sign up successful";
+  return data;
+}
+
+
 
   async login(login: Login): Promise<Status> {
-    let data: Status = {
-      return: 1,
-      args: [],
-      comments: "",
-    };
+  let data: Status = {
+    return: 1,
+    args: [],
+    comments: "",
+  };
 
+  //store entered info from user
+  const user =
+    this.Users_username[login.UsernameEmail] ||
+    this.Users_email[login.UsernameEmail];
+
+  //check if user exists
+  if (!user) {
+    data.comments = "not found.";
     return data;
   }
+
+  //hash attempted password with the stored salt
+  const inputHashed = crypto
+    .pbkdf2Sync(login.Password, user.salt, 1000, 64, "sha512")
+    .toString("hex");
+
+  //successful login
+  if (inputHashed === user.hashed) {
+    data.return = 0;
+    data.args = [user];
+    data.comments = "Login success";
+    
+    //insuccessful login
+  } else {
+    data.comments = "wrong password.";
+  }
+
+  return data;
+}
+
   /** ------------------------ */
 }
 
