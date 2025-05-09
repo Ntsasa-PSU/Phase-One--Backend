@@ -59,7 +59,7 @@ export default class Users {
       Path = normalize(Path + "/Users");
       this.Path = normalize(Path);
     }
-    this.import(Path);
+    this.import(this.Path);
     this.setup();
   }
 
@@ -97,6 +97,8 @@ export default class Users {
     return this.Users_ref[ref];
   }
 
+
+
   async save(): Promise<boolean> {
     try {
       await writeFile(
@@ -124,7 +126,7 @@ export default class Users {
     comments: "",
   };
 
-  //duplicate check using hte email and username
+  //duplicate account check 
   if (this.Users_email[Data.email] || this.Users_username[Data.Username]) {
     data.comments = "There is already a user with that info.";
     return data;
@@ -138,7 +140,7 @@ export default class Users {
   const id = crypto.randomUUID();
   const ref = crypto.randomBytes(8).toString("hex");
 
-  // create the User_Stats object
+  //create the User_Stats object
   const userStats: User_Stats = {
     Username: Data.Username,
     email: Data.email,
@@ -148,7 +150,7 @@ export default class Users {
     ref,
   };
 
-  // Create new user instance and store User_Stats that was populated
+  //create new user instance and store User_Stats that was populated
   const user = new User(this.Path, userStats);
   this.Users_system.push(userStats);
   this.Users_data.push(user);
@@ -157,23 +159,54 @@ export default class Users {
   this.Users_id[id] = user;
   this.Users_ref[ref] = user;
 
+  //save 
   await this.save();
 
   data.return = 0;
   data.args = [userStats];
-  data.comments = "Sign up successful.";
+  data.comments = "sign up successful";
   return data;
 }
 
-  async login(login: Login): Promise<Status> {
-    let data: Status = {
-      return: 1,
-      args: [],
-      comments: "",
-    };
 
+
+  async login(login: Login): Promise<Status> {
+  let data: Status = {
+    return: 1,
+    args: [],
+    comments: "",
+  };
+
+  //store entered info from user
+  const user =
+    this.Users_username[login.UsernameEmail] ||
+    this.Users_email[login.UsernameEmail];
+
+  //check if user exists
+  if (!user) {
+    data.comments = "not found.";
     return data;
   }
+
+  //hash attempted password with the stored salt
+  const inputHashed = crypto
+    .pbkdf2Sync(login.Password, user.salt, 1000, 64, "sha512")
+    .toString("hex");
+
+  //successful login
+  if (inputHashed === user.hashed) {
+    data.return = 0;
+    data.args = [user];
+    data.comments = "Login success";
+    
+    //insuccessful login
+  } else {
+    data.comments = "wrong password.";
+  }
+
+  return data;
+}
+
   /** ------------------------ */
 }
 
