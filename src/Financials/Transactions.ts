@@ -99,6 +99,7 @@ export default class Transactions {
   }
 
   /** ------------------------ */
+  // would this be based on what the user has enetered in or would it be 
   addTransaction(Data: Pre_Transaction): Status {
     let data: Status = {
       return: 1,
@@ -106,6 +107,43 @@ export default class Transactions {
       comments: "",
     };
 
+    try {
+      // we are getting the next
+      const nextID = this.transactions.reduce(
+        (maxId, tx) => Math.max(maxId, tx.id),
+        0
+      ) + 1;
+
+      // we are building a new transaction
+      const newTransaction: Transaction = {
+        From: Data.From,
+        Date: Data.Date,
+        // map Pre_Item[] → Item[] (assigning IDs later if needed)
+        items: Data.items.map((it, idx) => ({
+          name: it.name,
+          price: it.price,
+          currency: it.currency,
+          id: idx + 1,
+        })),
+        id: nextID,
+      };
+
+      // putting into memory
+      this.transactions.push(newTransaction);
+
+      // save
+      this.exportTransactions();
+
+      // checker
+      data.return = 1;
+      data.args = [nextID];
+      data.comments = "This transaction was added successfully";
+    } catch (error: any) {
+      // in case we have a bad transaction that couldn't be added
+      data.return = 0;
+      data.comments =
+        error.message || "This transaction FAILED to add";
+    }
     return data;
   }
 
@@ -115,7 +153,44 @@ export default class Transactions {
       args: [],
       comments: "",
     };
+    try {
+      const transcId = Number(Transaction_id);
+
+      // find the matching transaction
+      const transactionFound = this.transactions.find(
+        (tx) => tx.id === transcId
+      );
+      if (!transactionFound) {
+        throw new Error("Transaction could not be found");
+      }
+
+      // determine next item ID
+      const nextItemId =
+        transactionFound.items.reduce(
+          (max, it) => Math.max(max, it.id),
+          0
+        ) + 1;
+
+      // build and add the new item
+      const newItem: Item = {
+        name: item.name,
+        price: item.price,
+        currency: item.currency,
+        id: nextItemId,
+      };
+      transactionFound.items.push(newItem);
+
+      // saving
+      this.exportTransactions();
+
+      // it works
+      data.return = 1;
+      data.args = [nextItemId];
+      data.comments = "Item added successfully";
+    } catch (error: any) {
+      data.return = 0;
+      data.comments = error.message || "Item FAILED to add";
+    }
     return data;
   }
-  /** ------------------------ */
 }
