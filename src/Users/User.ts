@@ -68,13 +68,27 @@ export default class User {
 
   /** ------------------------ */
 
-  addTransaction(data: Transac_info): Status {
+  async addTransaction(data: Transac_info): Promise<Status> {
     let datas: Status = {
       return: 1,
       args: [],
       comments: "",
     };
-
+    try {
+      this.data.Transactions_.push(data);
+      const exportResult = await this.export(); // Await the export method
+      if (exportResult) {
+        datas.return = 0;
+        datas.args = [data];
+        datas.comments = "Transaction added successfully";
+      } else {
+        datas.return = 1;
+        datas.comments = "Failed to export data";
+      }
+    } catch (error) {
+      datas.return = 1;
+      datas.comments = `Failed to add transaction: ${error.message}`;
+    }
     return datas;
   }
 
