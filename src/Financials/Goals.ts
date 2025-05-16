@@ -50,7 +50,7 @@ export default class Goals {
         fs.writeFileSync(this.filePath, JSON.stringify(this.goals, null, 2), "utf8");
     }
 
-    
+
     addGoal(goalData: Omit<Goal, "id" | "dateCreated">): Status {
         const newGoal: Goal = {
             ...goalData,
@@ -60,6 +60,20 @@ export default class Goals {
         this.goals.push(newGoal);
         this.saveGoals();
         return { return: 0, args: [newGoal.id], comments: "Goal added successfully" };
+    }
+
+    updateGoal(goalId: string, updatedData: Partial<Omit<Goal, "id" | "dateCreated">>): Status {
+        const goalIndex = this.goals.findIndex(goal => goal.id === goalId);
+        if (goalIndex === -1) {
+            return { return: 1, args: [], comments: "Goal not found" };
+        }
+        this.goals[goalIndex] = {
+            ...this.goals[goalIndex],
+            ...updatedData,
+            dateDue: updatedData.dateDue || this.goals[goalIndex].dateDue,
+        };
+        this.saveGoals();
+        return { return: 0, args: [goalId], comments: "Goal updated successfully" };
     }
 
     getGoals(username: string): Goal[] {
