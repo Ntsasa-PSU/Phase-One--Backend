@@ -97,8 +97,21 @@ export default class Transactions {
   getId(): string {
     return this.id;
   }
+  // getting the total
+  getTotalTransaction(currency?: string): number {
+    return this.transactions.reduce((total, transaction) => {
+      const transactionTotal = transaction.items.reduce((itemTotal, item) => {
+        // checking if it is the same currency if not we skip over
+        if (currency && item.currency !== currency) {
+          return itemTotal; 
+        }
+        return itemTotal + item.price;
+      }, 0);
+      return total + transactionTotal;
+    }, 0);
+  }
 
-  /** ------------------------ */
+
   // would this be based on what the user has enetered in or would it be 
   addTransaction(Data: Pre_Transaction): Status {
     let data: Status = {

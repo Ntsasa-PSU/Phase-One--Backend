@@ -37,12 +37,27 @@ export default class AllTransactions {
     }
     return load;
   }
-
-  /** ------------------------ */
-  createTransaction(): Transactions | null {
-    return null;
+  
+  //total of all transactions
+  getTotalTransaction(currency?: string): number {
+    return this.Transactions_all.reduce((total, transaction) => {
+      return total + transaction.getTotalTransaction(currency);
+    }, 0);
   }
 
-  export() {}
-  /** ------------------------ */
+
+  // we are creating a new transtion and giving it an id
+  createTransaction(): Transactions {
+      const newTransaction = new Transactions(this.Path);
+      //giving the id once it has been created
+      this.Id_transactions[newTransaction.getId()] = newTransaction;
+      this.Transactions_all.push(newTransaction);
+      return newTransaction;
+  }
+
+  export() {
+    this.Transactions_all.forEach(transaction => {
+      transaction.exportTransactions();
+    });
+  }
 }
