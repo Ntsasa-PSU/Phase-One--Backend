@@ -1,6 +1,12 @@
 # Phase-One Backend
 
-This backend API is built with **Node.js**, **Express**, and **MongoDB** (using Mongoose). It supports user authentication, goal management, and transaction tracking.
+This backend is built with **Node.js**, **Express**, and **MongoDB** (using Mongoose). It supports user authentication, goal management, and transaction tracking.
+
+Reason for the shift from storing locally in JSON files:
+1. JSON is not encrypted.....so the user's bank info will be stored locally via plain text.
+   1. a "hacker" can just hit F12 and inspect the code on the FE and see the routes to where the JSON is and open it.
+2. Standard JSON files do not support access conrol like most other features we utilize in Javascript/Typescript (most features are under the hood) making is so there is no built-in way to limit who can read/write to these files (code injection/tampering)
+3. Google it and read the results, some horro stories about it.
 
 ---
 
@@ -136,3 +142,63 @@ method allows:
 _________________________________
 
 Google Gemani 
+- set up GCP Project in google cloud
+  -  Enable Vertex AI API.
+  -  create API key and store in .env file for project
+         GEMINI_API_KEY=our_gemini_api_key
+- npm install axios dotenv (required plugin )
+- add chat route/controllers/register route in app.ts
+
+    Postmand test example:
+
+    POST /api/chat
+    {
+    "message": "What is the weather like on Mars?"
+    }
+
+    expected response:
+    {
+    "reply": "On Mars, the weather is cold and dry..."
+    }
+
+    possible features:
+    save previous responses in MongoDB per user (for repeated questions )
+
+
+Gemini + Plaid Integration:
+
+1. Create a Plaid developer
+   1. Get your API keys: Client ID and secret
+   2. store in .env 
+        PLAID_CLIENT_ID=our_plaid_client_id
+        PLAID_SECRET=our_plaid_secret
+        PLAID_ENV=plaid_env_var_called_sandbox
+
+2. create a Plaid service module to configure/initialize 
+3. add routes/controllers/register route in app.ts 
+4. FE Note:
+    // Send to /api/chat 
+    // will have to use Plaid access token to send requests 
+    {
+    message: "Did I spend more at restaurants or groceries?",
+    access_token: "<PLAID_ACCESS_TOKEN>"
+    }
+
+    *** in this example we can see ***
+    1. Request coming from the FE that to verify authentication to user's bank information 
+    2. Banckend (w/ express and typescript)  fetches transaction data via Plaid SDK
+    3. Gemani will analyze the queries and bank data context and then provide our AI based response to the question 
+
+BUT Plaid is not a chat model! I will just allow us to securely fetch (with user permission):
+- Acccount Balances
+- Recent Transactions
+- Spending categories
+- Direct Deposit info
+- Liabilitis such as loans and credit 
+- Investment data 
+
+How I see it being used in this application:
+- User will link accounds using secure Plaid widget 
+- we get the access_token in the backend for the user (store in MongoDB so it is secure and will allow us to call on it!)
+- can utiilize (will need a little massaging) our /src/controllers/transactionController.ts to grab the user's financial data 
+- Then feed that data to Gemini with said prompt to do all the evaluation and provide a intelligent response to user based on their question!!! 
