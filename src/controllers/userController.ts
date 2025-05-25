@@ -13,21 +13,16 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(409).json({ message: "User with this email already exists" });
       return;
     }
 
-    // Generate salt and hash password
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
-
-    // Generate a unique ref (could be UUID or custom logic)
     const ref = `ref_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
-    // Create new user
     const newUser = new User({
       Username,
       email,
@@ -40,7 +35,18 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    // Generate JWT right after signup
+    const token = jwt.sign(
+      { userId: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET || "your_jwt_secret",
+      { expiresIn: "2h" }
+    );
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      userId: newUser._id
+    });
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -74,10 +80,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET || "your_jwt_secret",
-      { expiresIn: "1h" }
+      { expiresIn: "2h" }
     );
 
-    res.status(200).json({ message: "Login successful", token });
+    res.status(200).json({ message: "Login successful", token, userId: user._id });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Internal server error" });

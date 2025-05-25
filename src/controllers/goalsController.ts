@@ -1,7 +1,9 @@
+import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from "express";
 import User from "../models/User";
 
 // Add a new goal for a user
+
 export const addGoal = async (req: Request, res: Response) => {
   const { userId } = req.params;
   const newGoal = req.body;
@@ -13,14 +15,20 @@ export const addGoal = async (req: Request, res: Response) => {
       return;
     }
 
+    if (!newGoal.Id) {
+      newGoal.Id = uuidv4(); // Auto-assign a unique string ID
+    }
+
     user.Goals_.push(newGoal);
     await user.save();
 
     res.status(201).json({ message: "Goal added", goal: newGoal });
   } catch (error) {
+    console.error("Add goal error:", error);
     res.status(500).json({ message: "Error adding goal", error });
   }
 };
+
 
 // Get all goals for a user
 export const getGoals = async (req: Request, res: Response) => {
