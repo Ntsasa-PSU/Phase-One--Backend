@@ -10,6 +10,7 @@ export interface IUser extends Document {
   ref: string;
   Transactions_: Transaction[];
   Goals_: Goal[];
+  plaidAccessToken?: string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -20,6 +21,7 @@ const UserSchema = new Schema<IUser>({
   ref: { type: String, required: true, unique: true },
   Transactions_: { type: [TransactionSchema], default: [] },
   Goals_: { type: [GoalSchema], default: [] },
+  plaidAccessToken: { type: String, required: false },
 });
 
 export default mongoose.model<IUser>("User", UserSchema);

@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from "express";
 import User from "../models/User";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 // Add a new goal for a user
 
-export const addGoal = async (req: Request, res: Response) => {
+export const addGoal = async (req: AuthenticatedRequest, res: Response) => {
   const { userId } = req.params;
   const newGoal = req.body;
 
@@ -31,7 +32,7 @@ export const addGoal = async (req: Request, res: Response) => {
 
 
 // Get all goals for a user
-export const getGoals = async (req: Request, res: Response) => {
+export const getGoals = async (req: AuthenticatedRequest, res: Response) => {
   const { userId } = req.params;
 
   try {
@@ -48,7 +49,7 @@ export const getGoals = async (req: Request, res: Response) => {
 };
 
 // Get a specific goal by goalId for a user
-export const getGoal = async (req: Request, res: Response) => {
+export const getGoal = async (req: AuthenticatedRequest, res: Response) => {
   const { userId, goalId } = req.params;
 
   try {
@@ -71,7 +72,7 @@ export const getGoal = async (req: Request, res: Response) => {
 };
 
 // Update a goal by goalId for a user
-export const updateGoal = async (req: Request, res: Response) => {
+export const updateGoal = async (req: AuthenticatedRequest, res: Response) => {
   const { userId, goalId } = req.params;
   const updates = req.body;
 
@@ -99,7 +100,7 @@ export const updateGoal = async (req: Request, res: Response) => {
 };
 
 // Delete a goal by goalId for a user
-export const deleteGoal = async (req: Request, res: Response) => {
+export const deleteGoal = async (req: AuthenticatedRequest, res: Response) => {
   const { userId, goalId } = req.params;
 
   try {
