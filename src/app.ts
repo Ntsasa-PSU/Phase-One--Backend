@@ -5,6 +5,7 @@ import userRoutes from "./routes/userRoutes";
 import goalRoutes from "./routes/goalRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 import plaidRoutes from "./routes/plaidRoutes";
+import chatRoutes from "./routes/chatRoutes";
 
 dotenv.config();
 connectDB();
@@ -17,5 +18,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/users/:userId/goals", goalRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/plaid", plaidRoutes);
+app.use("/api/chat", chatRoutes);
 
 export default app;
