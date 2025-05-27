@@ -1,8 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 import { Transaction, TransactionSchema } from "./Transaction";
 import { Goal, GoalSchema } from "./Goal";
 
 export interface IUser extends Document {
+  _id: Types.ObjectId; //issue with Typescript not recognizing this as a string in createLinkToken
   Username: string;
   email: string;
   hashed: string;
