@@ -1,8 +1,9 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 import { Transaction, TransactionSchema } from "./Transaction";
 import { Goal, GoalSchema } from "./Goal";
 
 export interface IUser extends Document {
+  _id: Types.ObjectId; //issue with Typescript not recognizing this as a string in createLinkToken
   Username: string;
   email: string;
   hashed: string;
@@ -10,6 +11,7 @@ export interface IUser extends Document {
   ref: string;
   Transactions_: Transaction[];
   Goals_: Goal[];
+  plaidAccessToken?: string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -20,6 +22,7 @@ const UserSchema = new Schema<IUser>({
   ref: { type: String, required: true, unique: true },
   Transactions_: { type: [TransactionSchema], default: [] },
   Goals_: { type: [GoalSchema], default: [] },
+  plaidAccessToken: { type: String, required: false },
 });
 
 export default mongoose.model<IUser>("User", UserSchema);

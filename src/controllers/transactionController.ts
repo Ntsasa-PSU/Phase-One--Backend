@@ -1,18 +1,24 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import User, { IUser } from "../models/User";
 import { Transaction } from "../models/Transaction";
+import { AuthenticatedRequest } from "../middleware/auth";
 
 // Add a transaction to a user's Transactions_ array
-export const addTransaction = async (req: Request, res: Response): Promise<void> => {
-  const { userRef, transaction } = req.body as { userRef: string; transaction: Transaction };
+export const addTransaction = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { transaction } = req.body as { transaction: Transaction };
+  const userId = req.user?.userId;
 
-  if (!userRef || !transaction) {
-    res.status(400).json({ message: "Missing userRef or transaction data" });
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  if (!transaction) {
+    res.status(400).json({ message: "Missing transaction data" });
     return;
   }
 
   try {
-    const user: IUser | null = await User.findOne({ ref: userRef });
+    const user: IUser | null = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
@@ -28,16 +34,21 @@ export const addTransaction = async (req: Request, res: Response): Promise<void>
 };
 
 // Remove a transaction from a user's Transactions_ array
-export const removeTransaction = async (req: Request, res: Response): Promise<void> => {
-  const { userRef, transactionId } = req.body as { userRef: string; transactionId: string };
+export const removeTransaction = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { transactionId } = req.body as { transactionId: string };
+  const userId = req.user?.userId;
 
-  if (!userRef || !transactionId) {
-    res.status(400).json({ message: "Missing userRef or transactionId" });
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+  if (!transactionId) {
+    res.status(400).json({ message: "Missing transactionId" });
     return;
   }
 
   try {
-    const user: IUser | null = await User.findOne({ ref: userRef });
+    const user: IUser | null = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
@@ -59,12 +70,17 @@ export const removeTransaction = async (req: Request, res: Response): Promise<vo
   }
 };
 
-// Get all transactions for a user by userRef (from URL param)
-export const getTransactions = async (req: Request, res: Response): Promise<void> => {
-  const { userRef } = req.params;
+// Get all transactions for the authenticated user
+export const getTransactions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
 
   try {
-    const user: IUser | null = await User.findOne({ ref: userRef });
+    const user: IUser | null = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;

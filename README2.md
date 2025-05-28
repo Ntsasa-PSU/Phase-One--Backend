@@ -202,3 +202,28 @@ How I see it being used in this application:
 - we get the access_token in the backend for the user (store in MongoDB so it is secure and will allow us to call on it!)
 - can utiilize (will need a little massaging) our /src/controllers/transactionController.ts to grab the user's financial data 
 - Then feed that data to Gemini with said prompt to do all the evaluation and provide a intelligent response to user based on their question!!! 
+
+
+
+
+Plaid Link FE Code
+```
+import { usePlaidLink } from 'react-plaid-link';
+
+const LinkPlaid = () => {
+  const { open, ready } = usePlaidLink({
+    token: '<link_token_from_backend>',
+    onSuccess: (public_token, metadata) => {
+      // Send this to your backend
+      fetch('/api/plaid/exchange-token', {
+        method: 'POST',
+        body: JSON.stringify({ public_token }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+  });
+
+  return <button onClick={() => open()} disabled={!ready}>Link Bank</button>;
+};
+
+```
