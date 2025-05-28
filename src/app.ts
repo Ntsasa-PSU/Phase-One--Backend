@@ -6,6 +6,7 @@ import goalRoutes from "./routes/goalRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 import plaidRoutes from "./routes/plaidRoutes";
 import chatRoutes from "./routes/chatRoutes";
+// import { authenticateJWT } from "./middleware/auth";
 
 dotenv.config();
 connectDB();
