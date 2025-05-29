@@ -10,6 +10,7 @@ export type Goal = {
   Deadline?: Date;
 };
 
+
 export const GoalSchema = new Schema<Goal>(
   {
     Id: { type: String, required: true },
