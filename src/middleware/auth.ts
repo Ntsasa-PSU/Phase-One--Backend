@@ -1,28 +1,26 @@
-import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
+import admin from "../config/firebase";
 
 export interface AuthenticatedRequest extends Request {
-  user?: { userId: string; email: string };
+  user?: admin.auth.DecodedIdToken;
 }
 
-export const authenticateJWT: RequestHandler = (req, res, next) => {
+export const authenticateFirebase = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ message: "Authorization header missing or malformed" });
-    return; 
+    return;
   }
 
-  const token = authHeader.split(" ")[1];
+  const idToken = authHeader.split(" ")[1];
 
   try {
-    const secret = process.env.JWT_SECRET || "your_jwt_secret";
-    const decoded = jwt.verify(token, secret) as { userId: string; email: string };
-    (req as AuthenticatedRequest).user = decoded;
-    next();
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    (req as AuthenticatedRequest).user = decodedToken;
+    next(); // Success: proceed to next middleware
   } catch (error) {
-    console.error("JWT verification failed:", error);
+    console.error("Firebase ID token verification failed:", error);
     res.status(403).json({ message: "Invalid or expired token" });
-    return; 
   }
 };
