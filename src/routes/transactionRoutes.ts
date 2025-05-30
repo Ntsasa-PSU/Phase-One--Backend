@@ -4,12 +4,12 @@ import {
   removeTransaction,
   getTransactions,
 } from "../controllers/transactionController";
-import { authenticateFirebase } from "../middleware/auth";
+import { authenticateJWT } from "../middleware/auth";
 
 const router = express.Router();
 
-router.post("/add", authenticateFirebase, addTransaction);
-router.delete("/remove", authenticateFirebase, removeTransaction);
-router.get("/", authenticateFirebase, getTransactions);
+router.post("/add", authenticateJWT, addTransaction);
+router.delete("/remove", authenticateJWT, removeTransaction);
+router.get("/", authenticateJWT, getTransactions);
 
 export default router;

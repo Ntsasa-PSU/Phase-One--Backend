@@ -1,6 +1,6 @@
 import express from "express";
 import { signup, login, getCurrentUser } from "../controllers/userController"; 
-import { authenticateFirebase } from "../middleware/auth";
+import { authenticateJWT } from "../middleware/auth";
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 
 //User info route for FE, current need is to get ref for user to use Plaid
-router.get("/me", authenticateFirebase, getCurrentUser);
+router.get("/me", authenticateJWT, getCurrentUser);
 
 
 export default router;
